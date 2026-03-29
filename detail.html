@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How It Works — CloudBridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --surface: #0c1520;
+    --border: #1a2d42;
+    --accent: #00c8ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6e;
+    --text: #e8f0f8;
+    --muted: #5a7a99;
+    --card: #0f1e2d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; mix-blend-mode: screen; }
+  .cursor-ring { width: 36px; height: 36px; border: 1px solid var(--accent); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; mix-blend-mode: screen; opacity: 0.5; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none; z-index: 0;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(5,10,15,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; color: var(--accent); text-decoration: none; }
+  .nav-logo span { color: var(--text); }
+  .nav-back {
+    color: var(--muted); font-size: 13px; letter-spacing: 0.05em;
+    text-decoration: none; transition: color 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .nav-back:hover { color: var(--accent); }
+
+  /* Page header */
+  .page-header {
+    position: relative; z-index: 1;
+    padding: 160px 48px 80px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-tag {
+    font-size: 11px; letter-spacing: 0.2em; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+  .page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 800; letter-spacing: -2px; line-height: 1.0;
+    max-width: 800px;
+    opacity: 0; animation: fadeUp 0.7s ease 0.2s forwards;
+  }
+  .page-header h1 em { font-style: normal; color: var(--accent); }
+  .page-header p {
+    margin-top: 24px; max-width: 560px;
+    font-size: 15px; line-height: 1.7; color: var(--muted);
+    opacity: 0; animation: fadeUp 0.7s ease 0.35s forwards;
+  }
+
+  /* Section styles */
+  .section { position: relative; z-index: 1; padding: 100px 48px; }
+  .section-label { font-size: 11px; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 3.5vw, 44px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 48px; }
+
+  /* Timeline / Steps */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid; grid-template-columns: 80px 1fr;
+    gap: 0; border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  .step:hover { background: rgba(0,200,255,0.02); }
+  .step-num {
+    padding: 40px 32px;
+    border-right: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800;
+    color: var(--border);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 44px;
+    transition: color 0.3s;
+  }
+  .step:hover .step-num { color: var(--accent); }
+  .step-body { padding: 40px 48px; }
+  .step-phase {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 10px;
+  }
+  .step-body h3 {
+    font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700;
+    letter-spacing: -0.5px; margin-bottom: 12px;
+  }
+  .step-body p { font-size: 13px; line-height: 1.75; color: var(--muted); max-width: 620px; }
+  .step-detail {
+    margin-top: 20px;
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+  .detail-chip {
+    background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.15);
+    color: var(--accent); padding: 6px 14px; font-size: 11px; letter-spacing: 0.05em;
+  }
+
+  /* Input types */
+  .input-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .input-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 48px; }
+  .input-card { background: var(--card); padding: 36px; }
+  .input-card:hover { background: var(--surface); }
+  .input-icon { font-size: 24px; margin-bottom: 16px; }
+  .input-card h4 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .input-card p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .input-card code { display: block; margin-top: 12px; font-size: 11px; color: var(--accent); background: rgba(0,200,255,0.05); padding: 8px 12px; border-left: 2px solid var(--accent); }
+
+  /* Output mockup */
+  .output-mockup {
+    border: 1px solid var(--border);
+    background: var(--card);
+    margin-top: 48px;
+    overflow: hidden;
+  }
+  .mockup-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-title { font-size: 12px; color: var(--muted); margin-left: 8px; letter-spacing: 0.05em; }
+  .mockup-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .mockup-tab {
+    padding: 14px 24px; font-size: 12px; cursor: none;
+    border-right: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .mockup-tab.active { color: var(--accent); background: rgba(0,200,255,0.05); }
+  .mockup-tab:not(.active) { color: var(--muted); }
+  .mockup-body { padding: 32px; }
+
+  /* Mapping table */
+  .mapping-table { width: 100%; border-collapse: collapse; }
+  .mapping-table th { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+  .mapping-table td { padding: 14px 16px; border-bottom: 1px solid rgba(26,45,66,0.5); font-size: 12px; vertical-align: top; }
+  .mapping-table tr:last-child td { border-bottom: none; }
+  .gcp-val { color: #4285f4; }
+  .aws-val { color: #ff9900; }
+  .confidence { display: inline-block; padding: 3px 8px; font-size: 10px; border-radius: 2px; }
+  .conf-high { background: rgba(127,255,110,0.1); color: var(--accent3); border: 1px solid rgba(127,255,110,0.2); }
+  .conf-med { background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+  .risk-badge { display: inline-block; padding: 2px 8px; font-size: 10px; }
+  .risk-warn { background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3); }
+  .risk-ok { background: rgba(127,255,110,0.1); color: var(--accent3); border: 1px solid rgba(127,255,110,0.2); }
+
+  /* Timeline visual */
+  .timeline-comparison {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 32px; margin-top: 48px;
+  }
+  .timeline-card { border: 1px solid var(--border); padding: 36px; }
+  .timeline-card.old { border-color: rgba(255,107,53,0.3); }
+  .timeline-card.new { border-color: rgba(0,200,255,0.3); }
+  .timeline-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 20px; }
+  .timeline-label.old-label { color: var(--accent2); }
+  .timeline-label.new-label { color: var(--accent); }
+  .timeline-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .timeline-name { font-size: 11px; color: var(--muted); min-width: 120px; }
+  .timeline-bar { height: 8px; border-radius: 2px; }
+  .old-bar { background: rgba(255,107,53,0.3); }
+  .new-bar { background: rgba(0,200,255,0.4); }
+  .timeline-dur { font-size: 11px; color: var(--text); min-width: 60px; }
+
+  /* Who benefits */
+  .audience-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+  .audience-card { border: 1px solid var(--border); padding: 36px; transition: border-color 0.3s; }
+  .audience-card:hover { border-color: var(--accent); }
+  .audience-icon { font-size: 32px; margin-bottom: 20px; }
+  .audience-card h4 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .audience-role { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px; }
+  .audience-card p { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
+  /* Runbook preview */
+  .runbook-preview {
+    background: var(--card); border: 1px solid var(--border);
+    margin-top: 48px; padding: 36px; font-family: 'DM Mono', monospace;
+  }
+  .rb-header { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  .rb-step { display: flex; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(26,45,66,0.5); }
+  .rb-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .rb-step-num { color: var(--accent); font-size: 11px; min-width: 48px; padding-top: 2px; }
+  .rb-step-content { flex: 1; }
+  .rb-step-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .rb-step-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .rb-step-meta { display: flex; gap: 12px; margin-top: 8px; }
+  .rb-meta-chip { font-size: 10px; padding: 2px 8px; background: rgba(0,200,255,0.05); border: 1px solid rgba(0,200,255,0.15); color: var(--muted); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border); padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--muted); position: relative; z-index: 1;
+  }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--accent); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .page-header, .section { padding-left: 24px; padding-right: 24px; }
+    .input-grid, .timeline-comparison, .audience-grid { grid-template-columns: 1fr; }
+    .step { grid-template-columns: 60px 1fr; }
+    footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">Cloud<span>Bridge</span></a>
+  <a href="index.html" class="nav-back">← Back to Overview</a>
+</nav>
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-tag">Detail Page — How It Works</div>
+  <h1>From GCP infrastructure<br>to <em>AWS runbook</em><br>in four steps.</h1>
+  <p>A deep dive into the mechanics of CloudBridge — how we parse, map, analyze, and generate everything a migration team needs to move fast and confidently.</p>
+</div>
+
+<!-- Steps -->
+<section class="section">
+  <div class="section-label reveal">The Process</div>
+  <div class="section-title reveal">Four steps,<br>end to end.</div>
+
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <div class="step-phase">Input & Parsing</div>
+        <h3>Ingest Your GCP Infrastructure</h3>
+        <p>Upload your existing GCP configuration in any format — Terraform HCL, Deployment Manager YAML, raw JSON export, or simply describe your setup in natural language. Our parser extracts every resource, dependency, and configuration parameter.</p>
+        <div class="step-detail">
+          <span class="detail-chip">Terraform HCL parser</span>
+          <span class="detail-chip">Deployment Manager YAML</span>
+          <span class="detail-chip">JSON structured input</span>
+          <span class="detail-chip">Natural language input</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <div class="step-phase">AI Mapping</div>
+        <h3>Intelligent Service Translation</h3>
+        <p>Amazon Bedrock reasons over your infrastructure using a curated GCP→AWS service mapping dataset stored in a FAISS vector database. It selects the closest AWS equivalent for each service, accounts for configuration nuances, and explains every mapping decision with confidence scores.</p>
+        <div class="step-detail">
+          <span class="detail-chip">Amazon Bedrock (reasoning)</span>
+          <span class="detail-chip">FAISS semantic retrieval</span>
+          <span class="detail-chip">Confidence scoring</span>
+          <span class="detail-chip">Mapping explanations</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <div class="step-phase">Risk & Cost Analysis</div>
+        <h3>Identify Gaps Before They Hurt</h3>
+        <p>A hybrid rule-based and LLM-powered analysis layer scans every mapped service for IAM incompatibilities, unsupported configurations, networking topology mismatches, and data residency issues. Simultaneously, the AWS Pricing API generates a live cost comparison between your GCP baseline and the proposed AWS architecture.</p>
+        <div class="step-detail">
+          <span class="detail-chip">IAM compatibility check</span>
+          <span class="detail-chip">Networking gap detection</span>
+          <span class="detail-chip">AWS Pricing API</span>
+          <span class="detail-chip">Cost delta report</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <div class="step-phase">Runbook Generation</div>
+        <h3>An Executable Migration Plan</h3>
+        <p>CloudBridge generates a prioritized, dependency-ordered migration runbook with step-by-step instructions, rollback procedures, and validation checkpoints. Output includes AWS CloudFormation templates and Terraform configurations — ready to deploy, not just read.</p>
+        <div class="step-detail">
+          <span class="detail-chip">Dependency ordering</span>
+          <span class="detail-chip">CloudFormation output</span>
+          <span class="detail-chip">Terraform output</span>
+          <span class="detail-chip">Rollback procedures</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Input formats -->
+<section class="section input-section">
+  <div class="section-label reveal">Input Formats</div>
+  <div class="section-title reveal">Works with what<br>you already have.</div>
+
+  <div class="input-grid reveal">
+    <div class="input-card">
+      <div class="input-icon">📄</div>
+      <h4>Terraform (HCL)</h4>
+      <p>Upload your existing GCP Terraform files directly. We parse all resource blocks, variables, and module references.</p>
+      <code>resource "google_compute_instance" "vm" { ... }</code>
+    </div>
+    <div class="input-card">
+      <div class="input-icon">🗂️</div>
+      <h4>JSON / YAML Config</h4>
+      <p>Export your GCP project configuration as JSON or provide Deployment Manager YAML templates.</p>
+      <code>{ "resources": [{ "type": "compute.v1.instance" ... }] }</code>
+    </div>
+    <div class="input-card">
+      <div class="input-icon">💬</div>
+      <h4>Natural Language</h4>
+      <p>Describe your architecture in plain text. Useful for early-stage planning before full infra-as-code exists.</p>
+      <code>"We run 3 n2-standard-4 VMs with Cloud SQL and BigQuery for analytics..."</code>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Output mockup -->
+<section class="section">
+  <div class="section-label reveal">Sample Output</div>
+  <div class="section-title reveal">What the tool<br>actually generates.</div>
+
+  <div class="output-mockup reveal">
+    <div class="mockup-bar">
+      <div class="mockup-dot" style="background:#ff6b35"></div>
+      <div class="mockup-dot" style="background:#ffcc00"></div>
+      <div class="mockup-dot" style="background:#7fff6e"></div>
+      <span class="mockup-title">CloudBridge — Migration Analysis v1.0</span>
+    </div>
+    <div class="mockup-tabs">
+      <div class="mockup-tab active">Service Mapping</div>
+      <div class="mockup-tab">Risk Report</div>
+      <div class="mockup-tab">Cost Comparison</div>
+      <div class="mockup-tab">Runbook</div>
+    </div>
+    <div class="mockup-body">
+      <table class="mapping-table">
+        <thead>
+          <tr>
+            <th>GCP Service</th>
+            <th>AWS Equivalent</th>
+            <th>Confidence</th>
+            <th>Risk</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="gcp-val">Compute Engine (n2-standard-4)</td>
+            <td class="aws-val">EC2 m5.xlarge</td>
+            <td><span class="confidence conf-high">HIGH</span></td>
+            <td><span class="risk-badge risk-ok">None</span></td>
+            <td style="color:var(--muted);font-size:11px">Direct vCPU/memory match. Consider Reserved Instances.</td>
+          </tr>
+          <tr>
+            <td class="gcp-val">Cloud Storage (multi-region)</td>
+            <td class="aws-val">S3 + Cross-Region Replication</td>
+            <td><span class="confidence conf-high">HIGH</span></td>
+            <td><span class="risk-badge risk-ok">None</span></td>
+            <td style="color:var(--muted);font-size:11px">Enable CRR for same geo-redundancy guarantees.</td>
+          </tr>
+          <tr>
+            <td class="gcp-val">BigQuery (200TB)</td>
+            <td class="aws-val">Redshift RA3.4xlarge</td>
+            <td><span class="confidence conf-high">HIGH</span></td>
+            <td><span class="risk-badge risk-warn">Review</span></td>
+            <td style="color:var(--muted);font-size:11px">BigQuery is serverless; Redshift requires capacity planning.</td>
+          </tr>
+          <tr>
+            <td class="gcp-val">Cloud Run</td>
+            <td class="aws-val">AWS Fargate + ECS</td>
+            <td><span class="confidence conf-high">HIGH</span></td>
+            <td><span class="risk-badge risk-ok">None</span></td>
+            <td style="color:var(--muted);font-size:11px">Container images compatible. Update task definitions.</td>
+          </tr>
+          <tr>
+            <td class="gcp-val">GCP IAM + Workload Identity</td>
+            <td class="aws-val">AWS IAM + IRSA</td>
+            <td><span class="confidence conf-med">MEDIUM</span></td>
+            <td><span class="risk-badge risk-warn">⚠ Action needed</span></td>
+            <td style="color:var(--muted);font-size:11px">Custom IAM roles must be re-created. GCP primitives differ from AWS.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Runbook preview -->
+<section class="section" style="background:var(--surface);">
+  <div class="section-label reveal">Runbook Sample</div>
+  <div class="section-title reveal">Step-by-step,<br>ready to execute.</div>
+
+  <div class="runbook-preview reveal">
+    <div class="rb-header">// CLOUDBRIDGE MIGRATION RUNBOOK — Project: acme-prod — Generated: 2026-03-29</div>
+
+    <div class="rb-step">
+      <div class="rb-step-num">STEP 01</div>
+      <div class="rb-step-content">
+        <div class="rb-step-title">Pre-migration: IAM Role Re-creation</div>
+        <div class="rb-step-desc">Create equivalent AWS IAM roles for each GCP service account. Map Workload Identity bindings to IRSA (IAM Roles for Service Accounts). Validate least-privilege policies match intended GCP primitives.</div>
+        <div class="rb-step-meta">
+          <span class="rb-meta-chip">PRIORITY: Critical</span>
+          <span class="rb-meta-chip">EST: 4 hrs</span>
+          <span class="rb-meta-chip">Rollback: N/A (additive)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rb-step">
+      <div class="rb-step-num">STEP 02</div>
+      <div class="rb-step-content">
+        <div class="rb-step-title">Network: VPC + Subnet Setup</div>
+        <div class="rb-step-desc">Provision AWS VPC with equivalent CIDR blocks. Configure subnets to match GCP regional topology. Set up security groups mirroring GCP firewall rules. Enable VPC Flow Logs for audit parity.</div>
+        <div class="rb-step-meta">
+          <span class="rb-meta-chip">PRIORITY: High</span>
+          <span class="rb-meta-chip">EST: 2 hrs</span>
+          <span class="rb-meta-chip">Rollback: Delete VPC stack</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rb-step">
+      <div class="rb-step-num">STEP 03</div>
+      <div class="rb-step-content">
+        <div class="rb-step-title">Storage: S3 Bucket Provisioning + Data Sync</div>
+        <div class="rb-step-desc">Create S3 buckets with equivalent access policies. Enable Cross-Region Replication. Use AWS DataSync or S3 Transfer Acceleration to migrate data from GCS. Validate checksums post-transfer.</div>
+        <div class="rb-step-meta">
+          <span class="rb-meta-chip">PRIORITY: High</span>
+          <span class="rb-meta-chip">EST: 6–24 hrs (data-dependent)</span>
+          <span class="rb-meta-chip">Rollback: Keep GCS active in parallel</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rb-step">
+      <div class="rb-step-num">STEP 04</div>
+      <div class="rb-step-content">
+        <div class="rb-step-title">Compute: EC2 Launch + Load Balancer Configuration</div>
+        <div class="rb-step-desc">Launch EC2 instances from AMIs matching your container/OS baseline. Configure Auto Scaling groups. Set up Application Load Balancer with target groups. Validate health checks before traffic cutover.</div>
+        <div class="rb-step-meta">
+          <span class="rb-meta-chip">PRIORITY: High</span>
+          <span class="rb-meta-chip">EST: 3 hrs</span>
+          <span class="rb-meta-chip">Rollback: Route53 failback to GCP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Timeline comparison -->
+<section class="section">
+  <div class="section-label reveal">Before vs After</div>
+  <div class="section-title reveal">Time to migrate,<br>transformed.</div>
+
+  <div class="timeline-comparison reveal">
+    <div class="timeline-card old">
+      <div class="timeline-label old-label">Without CloudBridge (Old Way)</div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Discovery & Audit</div>
+        <div class="timeline-bar old-bar" style="width:180px"></div>
+        <div class="timeline-dur">3–4 wks</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Manual Mapping</div>
+        <div class="timeline-bar old-bar" style="width:280px"></div>
+        <div class="timeline-dur">2–3 mo</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Risk Assessment</div>
+        <div class="timeline-bar old-bar" style="width:200px"></div>
+        <div class="timeline-dur">4–6 wks</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Runbook Writing</div>
+        <div class="timeline-bar old-bar" style="width:240px"></div>
+        <div class="timeline-dur">6–8 wks</div>
+      </div>
+      <div style="margin-top:20px; font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--accent2)">6–18 months</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px">+ $M in consulting fees</div>
+    </div>
+
+    <div class="timeline-card new">
+      <div class="timeline-label new-label">With CloudBridge (New Way)</div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Input ingestion</div>
+        <div class="timeline-bar new-bar" style="width:20px"></div>
+        <div class="timeline-dur">5 min</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">AI Mapping</div>
+        <div class="timeline-bar new-bar" style="width:30px"></div>
+        <div class="timeline-dur">10 min</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Risk Analysis</div>
+        <div class="timeline-bar new-bar" style="width:25px"></div>
+        <div class="timeline-dur">5 min</div>
+      </div>
+      <div class="timeline-bar-row">
+        <div class="timeline-name">Runbook generation</div>
+        <div class="timeline-bar new-bar" style="width:20px"></div>
+        <div class="timeline-dur">5 min</div>
+      </div>
+      <div style="margin-top:20px; font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--accent)">Under 30 minutes</div>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px">70% planning time reduction</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Who benefits -->
+<section class="section" style="background:var(--surface);">
+  <div class="section-label reveal">Who Benefits</div>
+  <div class="section-title reveal">Three groups.<br>One accelerator.</div>
+
+  <div class="audience-grid reveal">
+    <div class="audience-card">
+      <div class="audience-icon">🏢</div>
+      <h4>Enterprises</h4>
+      <div class="audience-role">The Customer</div>
+      <p>Unlocks business agility by removing the migration bottleneck. Transforms a daunting, risky transition into a predictable, confident journey with clear milestones and early risk visibility.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">🤝</div>
+      <h4>AWS Partners</h4>
+      <div class="audience-role">The Sellers</div>
+      <p>Enables extreme scalability. Partners can bid on more projects simultaneously and win greater market share by offering rapid, data-backed architecture proposals — in hours instead of weeks.</p>
+    </div>
+    <div class="audience-card">
+      <div class="audience-icon">⚙️</div>
+      <h4>Cloud Engineers</h4>
+      <div class="audience-role">The Builders</div>
+      <p>Eliminates "translation fatigue." Shifts engineering focus away from tedious cross-cloud documentation research and manual mapping, freeing teams to focus on high-value execution work.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- Footer -->
+<footer>
+  <div>CloudBridge — Hack'A'War 2026 · Theme 2</div>
+  <div>Aadya Singh · Adhithya · Basavesh · Kamal Karteek U</div>
+  <a href="index.html">← Back to Home</a>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 6 + 'px';
+    cursor.style.top = my - 6 + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx - 18) * 0.15;
+    ry += (my - ry - 18) * 0.15;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
